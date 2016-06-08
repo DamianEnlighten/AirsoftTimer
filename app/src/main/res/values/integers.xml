@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="plant_time">3</integer>
+    <integer name="defuse_time">5</integer>
+    <integer name="detonation_time">45</integer>
+</resources>

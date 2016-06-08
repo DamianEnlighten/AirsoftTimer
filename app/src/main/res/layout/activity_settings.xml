@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.experiment.dstrong.csgo.SettingsActivity"
+    android:padding="@dimen/activity_margin">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/settings_label"
+            android:id="@+id/textView2"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/plant_label"
+            android:id="@+id/textView3"
+            android:layout_below="@+id/textView2"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="15dp" />
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:text="@integer/plant_time"
+            android:id="@+id/plant_time"
+            android:layout_below="@+id/textView3"
+            android:layout_alignLeft="@+id/defuse_time"
+            android:layout_alignStart="@+id/defuse_time"
+            android:layout_alignRight="@+id/defuse_time"
+            android:layout_alignEnd="@+id/defuse_time"
+            android:textAlignment="center" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/defuse_label"
+            android:id="@+id/textView4"
+            android:layout_below="@+id/plant_time"
+            android:layout_centerHorizontal="true" />
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:text="@integer/defuse_time"
+            android:id="@+id/defuse_time"
+            android:layout_below="@+id/textView4"
+            android:layout_alignLeft="@+id/textView5"
+            android:layout_alignStart="@+id/textView5"
+            android:layout_alignRight="@+id/textView5"
+            android:layout_alignEnd="@+id/textView5"
+            android:textAlignment="center" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/detonate_label"
+            android:id="@+id/textView5"
+            android:layout_below="@+id/defuse_time"
+            android:layout_centerHorizontal="true" />
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:text="@integer/detonation_time"
+            android:id="@+id/detonation_time"
+            android:layout_below="@+id/textView5"
+            android:layout_alignLeft="@+id/textView5"
+            android:layout_alignStart="@+id/textView5"
+            android:layout_alignRight="@+id/textView5"
+            android:layout_alignEnd="@+id/textView5"
+            android:textAlignment="center" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/save"
+            android:id="@+id/save_button"
+            android:layout_below="@+id/detonation_time"
+            android:layout_centerVertical="true"
+            android:layout_alignLeft="@+id/cancel_button"
+            android:layout_alignStart="@+id/cancel_button"
+            android:layout_marginTop="@dimen/activity_margin" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/default_button"
+            android:id="@+id/default_button"
+            android:layout_below="@+id/save_button"
+            android:layout_centerVertical="true"
+            android:layout_alignLeft="@+id/cancel_button"
+            android:layout_alignStart="@+id/cancel_button"
+            android:layout_marginTop="@dimen/activity_margin" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel"
+            android:id="@+id/cancel_button"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true" />
+</RelativeLayout>
