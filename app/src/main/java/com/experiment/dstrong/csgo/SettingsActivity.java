@@ -7,9 +7,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 public class SettingsActivity extends AppCompatActivity {
-    private String settings_name= "APP_SETTINGS";
+    private String settings_name = "APP_SETTINGS";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,12 +60,18 @@ public class SettingsActivity extends AppCompatActivity {
     };
     private View.OnClickListener defaultListener = new View.OnClickListener() {
         public void onClick(View v) {
-            SharedPreferences settings = getSharedPreferences(settings_name,0);
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putInt("plant_time", getResources().getInteger(R.integer.plant_time));
-            editor.putInt("defuse_time",getResources().getInteger(R.integer.defuse_time));
-            editor.putInt("detonation_time", getResources().getInteger(R.integer.detonation_time));
-            editor.commit();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    EditText defuse = (EditText) findViewById(R.id.defuse_time);
+                    EditText plant = (EditText) findViewById(R.id.plant_time);
+                    EditText detonation = (EditText) findViewById(R.id.detonation_time);
+
+                    plant.setText(String.valueOf(getResources().getInteger(R.integer.plant_time)));
+                    defuse.setText(String.valueOf(getResources().getInteger(R.integer.defuse_time)));
+                    detonation.setText(String.valueOf(getResources().getInteger(R.integer.detonation_time)));
+                }
+            });
         }
     };
     private View.OnClickListener cancelListener = new View.OnClickListener() {
@@ -72,23 +81,20 @@ public class SettingsActivity extends AppCompatActivity {
         }
     };
 
-    private boolean ValidateSettings(){
+    private boolean ValidateSettings() {
         EditText defuse = (EditText) findViewById(R.id.defuse_time);
         EditText plant = (EditText) findViewById(R.id.plant_time);
         EditText detonation = (EditText) findViewById(R.id.detonation_time);
 
-        if (Integer.parseInt(plant.getText().toString()) <1)
-        {
+        if (Integer.parseInt(plant.getText().toString()) < 1) {
             plant.setError("Time to plant must be more than 0");
             return false;
         }
-        if (Integer.parseInt(defuse.getText().toString()) <1)
-        {
+        if (Integer.parseInt(defuse.getText().toString()) < 1) {
             defuse.setError("Time to defuse must be more than 0");
             return false;
         }
-        if (Integer.parseInt(detonation.getText().toString()) <1)
-        {
+        if (Integer.parseInt(detonation.getText().toString()) < 1) {
             detonation.setError("Time to explosion must be more than 0");
             return false;
         }
