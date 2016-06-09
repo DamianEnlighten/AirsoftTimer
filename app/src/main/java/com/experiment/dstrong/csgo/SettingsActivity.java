@@ -79,17 +79,17 @@ public class SettingsActivity extends AppCompatActivity {
 
         if (Integer.parseInt(plant.getText().toString()) <1)
         {
-            plant.setText("0");
+            plant.setError("Time to plant must be more than 0");
             return false;
         }
         if (Integer.parseInt(defuse.getText().toString()) <1)
         {
-            defuse.setText("0");
+            defuse.setError("Time to defuse must be more than 0");
             return false;
         }
         if (Integer.parseInt(detonation.getText().toString()) <1)
         {
-            detonation.setText("0");
+            detonation.setError("Time to explosion must be more than 0");
             return false;
         }
 
