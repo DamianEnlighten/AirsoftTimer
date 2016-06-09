@@ -152,8 +152,11 @@ public class TimerActivity extends AppCompatActivity {
     private View.OnClickListener resetListener = new View.OnClickListener() {
         public void onClick(View v) {
             //stop any current countdown
-            bombTimer.cancel();
-            bombTimer.purge();
+            if (bombTimer != null) {
+                bombTimer.cancel();
+                bombTimer.purge();
+            }
+            pressed=false;
             //reset timer to 00:00
             resetView();
             //reset state

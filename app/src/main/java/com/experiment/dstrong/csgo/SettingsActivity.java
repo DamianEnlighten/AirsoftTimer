@@ -22,7 +22,7 @@ public class SettingsActivity extends AppCompatActivity {
         cancel_button.setOnClickListener(cancelListener);
 
         Button default_button = (Button) findViewById(R.id.default_button);
-        default_button.setOnClickListener(cancelListener);
+        default_button.setOnClickListener(defaultListener);
 
 
         EditText defuse = (EditText) findViewById(R.id.defuse_time);
@@ -37,20 +37,22 @@ public class SettingsActivity extends AppCompatActivity {
 
     private View.OnClickListener saveListener = new View.OnClickListener() {
         public void onClick(View v) {
-            SharedPreferences settings = getSharedPreferences(settings_name,0);
-            SharedPreferences.Editor editor = settings.edit();
+            if (ValidateSettings()) {
+                SharedPreferences settings = getSharedPreferences(settings_name, 0);
+                SharedPreferences.Editor editor = settings.edit();
 
-            EditText defuse = (EditText) findViewById(R.id.defuse_time);
-            EditText plant = (EditText) findViewById(R.id.plant_time);
-            EditText detonation = (EditText) findViewById(R.id.detonation_time);
+                EditText defuse = (EditText) findViewById(R.id.defuse_time);
+                EditText plant = (EditText) findViewById(R.id.plant_time);
+                EditText detonation = (EditText) findViewById(R.id.detonation_time);
 
-            editor.putInt("plant_time",  Integer.parseInt(plant.getText().toString()));
-            editor.putInt("defuse_time",Integer.parseInt(defuse.getText().toString()));
-            editor.putInt("detonation_time", Integer.parseInt(detonation.getText().toString()));
-            editor.commit();
+                editor.putInt("plant_time", Integer.parseInt(plant.getText().toString()));
+                editor.putInt("defuse_time", Integer.parseInt(defuse.getText().toString()));
+                editor.putInt("detonation_time", Integer.parseInt(detonation.getText().toString()));
+                editor.commit();
 
-            Intent intent = new Intent(v.getContext(), MainMenu.class);
-            startActivity(intent);
+                Intent intent = new Intent(v.getContext(), MainMenu.class);
+                startActivity(intent);
+            }
         }
     };
     private View.OnClickListener defaultListener = new View.OnClickListener() {
@@ -69,4 +71,28 @@ public class SettingsActivity extends AppCompatActivity {
             startActivity(intent);
         }
     };
+
+    private boolean ValidateSettings(){
+        EditText defuse = (EditText) findViewById(R.id.defuse_time);
+        EditText plant = (EditText) findViewById(R.id.plant_time);
+        EditText detonation = (EditText) findViewById(R.id.detonation_time);
+
+        if (Integer.parseInt(plant.getText().toString()) <1)
+        {
+            plant.setText("0");
+            return false;
+        }
+        if (Integer.parseInt(defuse.getText().toString()) <1)
+        {
+            defuse.setText("0");
+            return false;
+        }
+        if (Integer.parseInt(detonation.getText().toString()) <1)
+        {
+            detonation.setText("0");
+            return false;
+        }
+
+        return true;
+    }
 }
