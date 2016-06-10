@@ -11,7 +11,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 public class SettingsActivity extends AppCompatActivity {
-    private String settings_name = "APP_SETTINGS";
+    private static final String settings_name = "APP_SETTINGS";
+    private static final String plant_state = "PLANT";
+    private static final String defuse_state = "DEFUSE";
+    private static final String detonate_state = "DETONATE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +39,44 @@ public class SettingsActivity extends AppCompatActivity {
         defuse.setText(String.valueOf(settings.getInt("defuse_time", getResources().getInteger(R.integer.defuse_time))));
         plant.setText(String.valueOf(settings.getInt("plant_time", getResources().getInteger(R.integer.plant_time))));
         detonation.setText(String.valueOf(settings.getInt("detonation_time", getResources().getInteger(R.integer.detonation_time))));
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+
+        EditText defuse = (EditText) findViewById(R.id.defuse_time);
+        EditText plant = (EditText) findViewById(R.id.plant_time);
+        EditText detonation = (EditText) findViewById(R.id.detonation_time);
+
+        // Make sure to call the super method so that the states of our views are saved
+        super.onSaveInstanceState(savedInstanceState);
+        // Save our own state now
+        try {
+            savedInstanceState.putInt(plant_state, Integer.parseInt(plant.getText().toString()));
+        } catch (NumberFormatException ex) {
+            savedInstanceState.putInt(plant_state, 0);
+        }
+        try {
+            savedInstanceState.putInt(defuse_state, Integer.parseInt(defuse.getText().toString()));
+        } catch (NumberFormatException ex) {
+            savedInstanceState.putInt(defuse_state, 0);
+        }
+        try {
+            savedInstanceState.putInt(detonate_state, Integer.parseInt(detonation.getText().toString()));
+        } catch (NumberFormatException ex) {
+            savedInstanceState.putInt(detonate_state, 0);
+        }
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        EditText defuse = (EditText) findViewById(R.id.defuse_time);
+        EditText plant = (EditText) findViewById(R.id.plant_time);
+        EditText detonation = (EditText) findViewById(R.id.detonation_time);
+
+        defuse.setText(String.valueOf(savedInstanceState.getInt(defuse_state)));
+        plant.setText(String.valueOf(savedInstanceState.getInt(plant_state)));
+        detonation.setText(String.valueOf(savedInstanceState.getInt(detonate_state)));
     }
 
     private View.OnClickListener saveListener = new View.OnClickListener() {

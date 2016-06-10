@@ -14,7 +14,10 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class TimerActivity extends AppCompatActivity {
-    private String settings_name= "APP_SETTINGS";
+    private static final String settings_name = "APP_SETTINGS";
+    private static final String activity_state = "STATE";
+    private static final String timer_state = "TIMER";
+    private static final String timer_text = "TIMER_TEXT";
     private boolean pressed;
     private int time;
     private int defuse_time;
@@ -25,12 +28,15 @@ public class TimerActivity extends AppCompatActivity {
     Timer progress;
     Timer plant;
     Timer defuse;
-    enum status{
+
+    enum status {
         ACTIVE,
         INACTIVE,
         PLANTING,
         DEFUSING
-    };
+    }
+
+    ;
     status state;
 
     Button plant_button;
@@ -54,63 +60,130 @@ public class TimerActivity extends AppCompatActivity {
 
         defuse_button.setVisibility(View.INVISIBLE);
 
-        state= status.INACTIVE;
+        state = status.INACTIVE;
 
         // Restore preferences
         SharedPreferences settings = getSharedPreferences(settings_name, 0);
-        defuse_time=settings.getInt("defuse_time", getResources().getInteger(R.integer.defuse_time));
-        plant_time=settings.getInt("plant_time", getResources().getInteger(R.integer.plant_time));
-        detonation_time=settings.getInt("detonation_time", getResources().getInteger(R.integer.detonation_time));
+        defuse_time = settings.getInt("defuse_time", getResources().getInteger(R.integer.defuse_time));
+        plant_time = settings.getInt("plant_time", getResources().getInteger(R.integer.plant_time));
+        detonation_time = settings.getInt("detonation_time", getResources().getInteger(R.integer.detonation_time));
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        // Make sure to call the super method so that the states of our views are saved
+        super.onSaveInstanceState(savedInstanceState);
+        // Save our own state now
+
+        TextView timerText = (TextView) findViewById(R.id.timer_text);
+
+        savedInstanceState.putString(timer_text, (String)timerText.getText());
+        savedInstanceState.putInt(timer_state, time);
+        savedInstanceState.putSerializable(activity_state, state);
+
+        //cancel timers
+        if (bombTimer != null) {
+            bombTimer.cancel();
+            bombTimer.purge();
+        }
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+
+        TextView timerText = (TextView) findViewById(R.id.timer_text);
+        timerText.setText(savedInstanceState.getString(timer_text));
+        state = (status) savedInstanceState.getSerializable(activity_state);
+        time = savedInstanceState.getInt(timer_state);
+
+        if (state == status.ACTIVE) {
+            bombTimer = new Timer(true);
+            bombTimer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    time = time - 1;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            TextView timerText = (TextView) findViewById(R.id.timer_text);
+                            timerText.setText(String.format("%02d:%02d", time / 60, time % 60));
+                        }
+                    });
+                    if (time <= 0) {
+                        //stop in progress defusal and bomb timer
+                        if (defuse != null) {
+                            defuse.cancel();
+                            defuse.purge();
+                        }
+                        pressed = false;
+                        if (progress != null) {
+                            progress.cancel();
+                            progress.purge();
+                        }
+                        if (bombTimer != null) {
+                            bombTimer.cancel();
+                            bombTimer.purge();
+                        }
+                        //play explodes sound
+                        //display boom
+                        resetView();
+                        boomView();
+                    }
+                }
+            }, 0, 1000);
+
+            plantView();
+        }
     }
 
     private View.OnTouchListener plantListener = new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                final int max=plant_time*1000;
-                ProgressBar progBar=(ProgressBar)findViewById(R.id.progress);
-                progBar.setMax(max);
-                //start progress on defuse while pressed
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        progress = new Timer(true);
-                        plant= new Timer(true);
-                        pressed=true;
-                        state=status.PLANTING;
-                        //play planting sound
-                        final int eventTime=(int)System.currentTimeMillis();
-                        progress.scheduleAtFixedRate(new TimerTask() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            final int max = plant_time * 1000;
+            ProgressBar progBar = (ProgressBar) findViewById(R.id.progress);
+            progBar.setMax(max);
+            //start progress on defuse while pressed
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    progress = new Timer(true);
+                    plant = new Timer(true);
+                    pressed = true;
+                    state = status.PLANTING;
+                    //play planting sound
+                    final int eventTime = (int) System.currentTimeMillis();
+                    progress.scheduleAtFixedRate(new TimerTask() {
                         @Override
                         public void run() {
-                            handleProgress(eventTime,max);
+                            handleProgress(eventTime, max);
                         }
-                    },0,10);
-                        plant.schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                runPlant();
-                            }
-                        },max);
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        plant.cancel();
-                        plant.purge();
-                        progress.cancel();
-                        progress.purge();
-                        pressed=false;
-                        if (state != status.ACTIVE) {
-                            state = status.INACTIVE;
+                    }, 0, 10);
+                    plant.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            runPlant();
                         }
-                        break;
+                    }, max);
+                    break;
+                case MotionEvent.ACTION_UP:
+                    plant.cancel();
+                    plant.purge();
+                    progress.cancel();
+                    progress.purge();
+                    pressed = false;
+                    if (state != status.ACTIVE) {
+                        state = status.INACTIVE;
+                    }
+                    break;
 
-                }
-                return true;
             }
+            return true;
+        }
     };
     private View.OnTouchListener defuseListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
-           final int max= defuse_time*1000;
-           ProgressBar progBar=(ProgressBar)findViewById(R.id.progress);
+            final int max = defuse_time * 1000;
+            ProgressBar progBar = (ProgressBar) findViewById(R.id.progress);
             progBar.setMax(max);
             //start progress on defuse while pressed
 
@@ -119,26 +192,26 @@ public class TimerActivity extends AppCompatActivity {
                     //play start defusing
                     progress = new Timer(true);
                     defuse = new Timer(true);
-                    pressed=true;
-                    state=status.DEFUSING;
-                    final int eventTime=(int)System.currentTimeMillis();
+                    pressed = true;
+                    state = status.DEFUSING;
+                    final int eventTime = (int) System.currentTimeMillis();
                     progress.scheduleAtFixedRate(new TimerTask() {
                         @Override
                         public void run() {
-                            handleProgress(eventTime,max);
+                            handleProgress(eventTime, max);
                         }
-                    },0,10);
+                    }, 0, 10);
                     defuse.schedule(new TimerTask() {
                         @Override
                         public void run() {
                             runDefuse();
                         }
-                    },max);
+                    }, max);
                     break;
                 case MotionEvent.ACTION_UP:
                     defuse.cancel();
                     defuse.purge();
-                    pressed=false;
+                    pressed = false;
                     progress.cancel();
                     progress.purge();
                     if (state != status.INACTIVE) {
@@ -156,39 +229,39 @@ public class TimerActivity extends AppCompatActivity {
                 bombTimer.cancel();
                 bombTimer.purge();
             }
-            pressed=false;
+            pressed = false;
             //reset timer to 00:00
             resetView();
             //reset state
-            state=status.INACTIVE;
+            state = status.INACTIVE;
         }
     };
-    private void runPlant(){
+
+    private void runPlant() {
 
         //announce planted
         //start beeping
         state = status.ACTIVE;
-        time= detonation_time;
-        bombTimer=new Timer(true);
+        time = detonation_time;
+        bombTimer = new Timer(true);
         bombTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                time=time-1;
+                time = time - 1;
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        TextView timerText = (TextView)findViewById(R.id.timer_text);
+                        TextView timerText = (TextView) findViewById(R.id.timer_text);
                         timerText.setText(String.format("%02d:%02d", time / 60, time % 60));
                     }
                 });
-                if ( time <= 0)
-                {
+                if (time <= 0) {
                     //stop in progress defusal and bomb timer
-                    if (defuse !=null) {
+                    if (defuse != null) {
                         defuse.cancel();
                         defuse.purge();
                     }
-                    pressed=false;
+                    pressed = false;
                     progress.cancel();
                     progress.purge();
                     bombTimer.cancel();
@@ -199,40 +272,41 @@ public class TimerActivity extends AppCompatActivity {
                     boomView();
                 }
             }
-        },0,1000);
+        }, 0, 1000);
 
         plantView();
 
     }
+
     private void runDefuse() {
-            //on complete play defuse sound
-            //announce defused
-            state = status.INACTIVE;
+        //on complete play defuse sound
+        //announce defused
+        state = status.INACTIVE;
         bombTimer.cancel();
         bombTimer.purge();
         resetView();
         defuseView();
-    };
+    }
 
-    private void handleProgress(int eventTime, int max){
+    ;
+
+    private void handleProgress(int eventTime, int max) {
         ProgressBar progBar = (ProgressBar) findViewById(R.id.progress);
-        int downTime=(int)System.currentTimeMillis();
-        int progress=(downTime-eventTime);
-        if(pressed && progress <max){
+        int downTime = (int) System.currentTimeMillis();
+        int progress = (downTime - eventTime);
+        if (pressed && progress < max) {
             progBar.setProgress(progress);
-        }
-        else
-        {
+        } else {
             progBar.setProgress(0);
         }
     }
 
-    private void resetView(){
+    private void resetView() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                ProgressBar progBar=(ProgressBar)findViewById(R.id.progress);
-                TextView timerText = (TextView)findViewById(R.id.timer_text);
+                ProgressBar progBar = (ProgressBar) findViewById(R.id.progress);
+                TextView timerText = (TextView) findViewById(R.id.timer_text);
                 plant_button.setVisibility(View.VISIBLE);
                 defuse_button.setVisibility(View.INVISIBLE);
                 timerText.setText("00:00");
@@ -240,21 +314,22 @@ public class TimerActivity extends AppCompatActivity {
             }
         });
     }
-    private void defuseView(){
+
+    private void defuseView() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                TextView timerText = (TextView)findViewById(R.id.timer_text);
+                TextView timerText = (TextView) findViewById(R.id.timer_text);
                 timerText.setText("DEFUSED");
             }
         });
     }
 
-    private void boomView(){
+    private void boomView() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                TextView timerText = (TextView)findViewById(R.id.timer_text);
+                TextView timerText = (TextView) findViewById(R.id.timer_text);
                 timerText.setText("Boom");
                 plant_button.setVisibility(View.INVISIBLE);
                 defuse_button.setVisibility(View.INVISIBLE);
@@ -266,7 +341,7 @@ public class TimerActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                ProgressBar progBar=(ProgressBar)findViewById(R.id.progress);
+                ProgressBar progBar = (ProgressBar) findViewById(R.id.progress);
                 plant_button.setVisibility(View.INVISIBLE);
                 defuse_button.setVisibility(View.VISIBLE);
                 progBar.setProgress(0);
