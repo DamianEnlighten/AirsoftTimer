@@ -1,6 +1,7 @@
 package com.experiment.dstrong.csgo;
 
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -13,6 +14,7 @@ import android.widget.TextView;
 import java.util.Timer;
 import java.util.TimerTask;
 
+
 public class TimerActivity extends AppCompatActivity {
     private static final String settings_name = "APP_SETTINGS";
     private static final String activity_state = "STATE";
@@ -23,6 +25,7 @@ public class TimerActivity extends AppCompatActivity {
     private int defuse_time;
     private int plant_time;
     private int detonation_time;
+    private MediaPlayer mp;
 
     Timer bombTimer;
     Timer progress;
@@ -77,7 +80,7 @@ public class TimerActivity extends AppCompatActivity {
 
         TextView timerText = (TextView) findViewById(R.id.timer_text);
 
-        savedInstanceState.putString(timer_text, (String)timerText.getText());
+        savedInstanceState.putString(timer_text, (String) timerText.getText());
         savedInstanceState.putInt(timer_state, time);
         savedInstanceState.putSerializable(activity_state, state);
 
@@ -95,44 +98,8 @@ public class TimerActivity extends AppCompatActivity {
         timerText.setText(savedInstanceState.getString(timer_text));
         state = (status) savedInstanceState.getSerializable(activity_state);
         time = savedInstanceState.getInt(timer_state);
-
         if (state == status.ACTIVE) {
-            bombTimer = new Timer(true);
-            bombTimer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    time = time - 1;
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            TextView timerText = (TextView) findViewById(R.id.timer_text);
-                            timerText.setText(String.format("%02d:%02d", time / 60, time % 60));
-                        }
-                    });
-                    if (time <= 0) {
-                        //stop in progress defusal and bomb timer
-                        if (defuse != null) {
-                            defuse.cancel();
-                            defuse.purge();
-                        }
-                        pressed = false;
-                        if (progress != null) {
-                            progress.cancel();
-                            progress.purge();
-                        }
-                        if (bombTimer != null) {
-                            bombTimer.cancel();
-                            bombTimer.purge();
-                        }
-                        //play explodes sound
-                        //display boom
-                        resetView();
-                        boomView();
-                    }
-                }
-            }, 0, 1000);
-
-            plantView();
+            startBombTask();
         }
     }
 
@@ -145,11 +112,12 @@ public class TimerActivity extends AppCompatActivity {
             //start progress on defuse while pressed
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
+                    playSound("planting");
                     progress = new Timer(true);
                     plant = new Timer(true);
                     pressed = true;
                     state = status.PLANTING;
-                    //play planting sound
+
                     final int eventTime = (int) System.currentTimeMillis();
                     progress.scheduleAtFixedRate(new TimerTask() {
                         @Override
@@ -189,7 +157,7 @@ public class TimerActivity extends AppCompatActivity {
 
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
-                    //play start defusing
+                    playSound("defusing");
                     progress = new Timer(true);
                     defuse = new Timer(true);
                     pressed = true;
@@ -238,11 +206,15 @@ public class TimerActivity extends AppCompatActivity {
     };
 
     private void runPlant() {
-
-        //announce planted
-        //start beeping
+        playSound("planted");
         state = status.ACTIVE;
         time = detonation_time;
+        startBombTask();
+
+    }
+
+    public void startBombTask(){
+        //TODO handle beeping
         bombTimer = new Timer(true);
         bombTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -266,8 +238,7 @@ public class TimerActivity extends AppCompatActivity {
                     progress.purge();
                     bombTimer.cancel();
                     bombTimer.purge();
-                    //play explodes sound
-                    //display boom
+                    playSound("explode");
                     resetView();
                     boomView();
                 }
@@ -275,12 +246,10 @@ public class TimerActivity extends AppCompatActivity {
         }, 0, 1000);
 
         plantView();
-
     }
 
     private void runDefuse() {
-        //on complete play defuse sound
-        //announce defused
+        playSound("defused");
         state = status.INACTIVE;
         bombTimer.cancel();
         bombTimer.purge();
@@ -347,6 +316,31 @@ public class TimerActivity extends AppCompatActivity {
                 progBar.setProgress(0);
             }
         });
+    }
+
+    private void playSound(String sound) {
+        //TODO add media resources
+        int file = 0;
+        switch (sound) {
+            case "defusing":
+                break;
+
+            case "planting":
+                break;
+
+            case "planted":
+                break;
+
+            case "defused":
+                break;
+
+            case "explode":
+                break;
+        }
+        if (file != 0) {
+            mp = MediaPlayer.create(getApplicationContext(), file);
+            mp.start();
+        }
     }
 
 }
